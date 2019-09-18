@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
 import 'request_listing_screen.dart';
+import '../authentication.dart';
+import '../login_screen.dart';
 
 class MainScreen extends StatelessWidget {
 
@@ -152,7 +154,8 @@ class MainScreen extends StatelessWidget {
       children: <Widget>[
         _createIncommingRequestTile(),
         _createQuotedRequestTile(),
-        _createAcceptedRequestTile()
+        _createAcceptedRequestTile(),
+        _createLogoutTile()
       ],
     );
   }
@@ -202,13 +205,13 @@ class MainScreen extends StatelessWidget {
   }
 
   void _whenQuotedRequestPressed(){
-    //Navigator.push(_context, _getActiveRoute());
+    Navigator.push(_context, _getQuotedRequestsRoute());
   }
 
   MaterialPageRoute _getQuotedRequestsRoute(){
     return MaterialPageRoute(
       builder: (BuildContext context){
-        //return RequestListingScreen('active');
+        return RequestListingScreen('quoted');
       }
     );
   }
@@ -230,17 +233,39 @@ class MainScreen extends StatelessWidget {
   }
 
   void _whenAcceptedRequestPressed(){
-    //Navigator.push(_context, _getArchivedRoute());
+    Navigator.push(_context, _getAcceptedRequestsRoute());
   }
 
-  MaterialPageRoute _getAccesptedRequestsRoute(){
+  MaterialPageRoute _getAcceptedRequestsRoute(){
     return MaterialPageRoute(
       builder: (BuildContext context){
-        //return RequestListingScreen('archived');
+        return RequestListingScreen('accepted');
       }
     );
   }
 
+  Widget _createLogoutTile(){
+    return ListTile(
+      title: Text('logout' ,style: _getMenuListTextStyle(),),
+      onTap: (){_whenLogoutPressed();},
+    );
+  }
+
+  Future<void> _whenLogoutPressed() async{
+    bool result = await Authenticator().logout();
+    if(result){
+      MaterialPageRoute route = _getLoginRoute();
+      Navigator.push(_context, route);
+    }
+  }
+
+  MaterialPageRoute _getLoginRoute(){
+    return MaterialPageRoute(
+      builder: (BuildContext context){
+        return LoginScreen().getScaffold();
+      }
+    );
+  }
 
   TextStyle _getMenuListTextStyle(){
     return TextStyle(

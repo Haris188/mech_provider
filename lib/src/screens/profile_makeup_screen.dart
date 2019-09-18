@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mech_provider/src/screens/main_screen.dart';
 import '../backend/profile_makeup_backend.dart';
+import 'package:flutter/services.dart';
+import 'dart:convert';
 
 class ProfileMakeupScreen extends StatefulWidget {
   @override
@@ -16,6 +18,8 @@ class _ProfileMakeupScreenState extends State<ProfileMakeupScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _stateController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
+  String _stateValue;
+  String _cityValue;
 
   
 
@@ -52,8 +56,9 @@ class _ProfileMakeupScreenState extends State<ProfileMakeupScreen> {
       children: <Widget>[
         _createMechNameField(),
         _createBusinessNameField(),
-        _createStateField(),
-        _createCityField(),
+        _createStateDropdownRow(),
+        _createCityDropdownRow(),
+        _createAddressField(),
         _createPhoneField(),
         _createSubmitButton()
       ],
@@ -82,23 +87,127 @@ class _ProfileMakeupScreenState extends State<ProfileMakeupScreen> {
     );
   }
 
-  Widget _createStateField(){
-    return TextFormField(
-      controller: _stateController,
-      decoration: InputDecoration(
-        labelText: 'State',
-        hintText: 'ON'
-      ),
-      validator: (value){ return _nullValidateCheck(value);},
+  Widget _createStateDropdownRow(){
+    return Row(
+      children: <Widget>[
+        _getStateDropdownText(),
+        _createStateDropdown()
+      ],
     );
   }
 
-  Widget _createCityField(){
+  Widget _getStateDropdownText(){
+    return Text('Select your State: ');
+  }
+
+  Widget _createStateDropdown(){
+    return FutureBuilder(
+      future: _getStates(),
+      builder: (BuildContext context, AsyncSnapshot stateListSnap){
+        return DropdownButton(
+          value: _stateValue,
+          items: stateListSnap.data,
+          onChanged: (value){_replaceStateWith(value);},
+        );
+      },
+    );
+  }
+
+  Future<List<DropdownMenuItem>>_getStates() async{
+    List<dynamic> listOfStates = 
+      json.decode(await rootBundle.loadString('lib/src/assets/states.json'));
+    List<DropdownMenuItem<String>> itemList
+      = listOfStates.map<DropdownMenuItem<String>>((state){
+          return DropdownMenuItem<String>(
+            value: state['name'],
+            child: Text(state['name']),
+          );
+      }).toList();
+    return itemList;
+  }
+
+  void _replaceStateWith(String value){
+    setState(() {
+      _stateValue = value;
+    });
+  }
+
+  Widget _createCityDropdownRow(){
+    return Row(
+      children: <Widget>[
+        _getCityDropdownText(),
+        _createCityDropdown()
+      ],
+    );
+  }
+
+  Widget _getCityDropdownText(){
+    return Text('Select your City: ');
+  }
+
+  Widget _createCityDropdown(){
+    return FutureBuilder(
+      future: _getCities(),
+      builder: (BuildContext context, AsyncSnapshot cityListSnap){
+        return DropdownButton(
+          value: _cityValue,
+          items: cityListSnap.data,
+          onChanged: (value){_replaceCityWith(value);},
+        );
+      },
+    );
+  }
+
+  Future<List<DropdownMenuItem>>_getCities() async{
+    List<dynamic> listOfStates = 
+      json.decode(await rootBundle.loadString('lib/src/assets/cities.json'));
+    listOfStates = listOfStates.where((city){
+      return city['admin'] == _stateValue;
+    }).toList();
+    List<DropdownMenuItem<String>> itemList
+      = listOfStates.map<DropdownMenuItem<String>>((city){
+          return DropdownMenuItem<String>(
+            value: city['city'],
+            child: Text(city['city']),
+          );
+      }).toList();
+    return itemList;
+  }
+
+  void _replaceCityWith(String value){
+    setState(() {
+      _cityValue = value;
+    });
+  }
+
+  // Widget _createStateField(){
+  //   return TextFormField(
+  //     controller: _stateController,
+  //     decoration: InputDecoration(
+  //       labelText: 'State',
+  //       hintText: 'ON'
+  //     ),
+  //     validator: (value){ return _nullValidateCheck(value);},
+  //   );
+  // }
+
+  // Widget _createCityField(){
+  //   return TextFormField(
+  //     controller: _cityController,
+  //     decoration: InputDecoration(
+  //       labelText: 'City',
+  //       hintText: 'Toronto'
+  //     ),
+  //     validator: (value){ return _nullValidateCheck(value);},
+  //   );
+  // }
+
+    Widget _createAddressField(){
     return TextFormField(
-      controller: _cityController,
+      controller: _addressController,
       decoration: InputDecoration(
-        labelText: 'City',
-        hintText: 'Toronto'
+        labelText: 'Address',
+        hintText: ''
       ),
       validator: (value){ return _nullValidateCheck(value);},
     );
@@ -149,8 +258,9 @@ class _ProfileMakeupScreenState extends State<ProfileMakeupScreen> {
     _profileInfoMap = {
       'location': {
         'country' : 'canada',
-        'state' : _stateController.text,
-        'city': _cityController.text,
+        'state' : _stateValue,
+        'city': _cityValue,
+        'address': _addressController.text,
         'phone' : _phoneController.text,
       }
     };

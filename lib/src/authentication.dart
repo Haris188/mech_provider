@@ -30,4 +30,17 @@ class Authenticator{
         return null;
     }
   }
+
+  Future<bool> logout() async{
+    bool result;
+    await GoogleSignIn().signOut()
+      .whenComplete((){
+        result = true;
+      })
+      .catchError((e){
+        result = false;
+        print('Cant logout @ Authenticator > logout()');
+      });
+    return result;
+  }
 }

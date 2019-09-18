@@ -1,5 +1,8 @@
-
+import 'attachment_screen.dart';
 import 'package:flutter/material.dart';
+import '../backend/request_info_backend.dart';
+import 'vehicle_detail_screen.dart';
+import 'quote_form_screen.dart';
 
 class RequestInfoScreen extends StatelessWidget {
   final Map<String, dynamic> _request;
@@ -35,13 +38,15 @@ class RequestInfoScreen extends StatelessWidget {
   }
 
   Widget _createRequestInfoList(){
-    return ListView(
-      children: <Widget>[
-        _createTitleTile(),
-        _createVehicleInfoButton(),
-        _createDescriptionTile(),
-        _createAttachmentButton()
-      ],
+    return Expanded(
+          child: ListView(
+        children: <Widget>[
+          _createTitleTile(),
+          _createVehicleInfoButton(),
+          _createDescriptionTile(),
+          _createAttachmentButton()
+        ],
+      ),
     );
   }
 
@@ -67,7 +72,7 @@ class RequestInfoScreen extends StatelessWidget {
   MaterialPageRoute _getViewVehicleRoute(){
     return MaterialPageRoute(
       builder: (BuildContext context){
-        //return VehicleInfoScreen();
+        return VehicleDetailScreen(_request['request_id']);
       }
     );
   }
@@ -94,18 +99,23 @@ class RequestInfoScreen extends StatelessWidget {
   MaterialPageRoute _getAttachmentRoute(){
     return MaterialPageRoute(
       builder: (BuildContext context){
-        //return AttachmentScreen(_request['attachment_url']);
+       return AttachmentScreen(_request['attachment_url']);
       }
     );
   }
 
-  FutureBuilder _createQuoteInfoSection(){
+  Widget _createQuoteInfoSection(){
     return FutureBuilder(
       future: RequestInfoBackend().getQuoteInfoForReqId(_request['request_id']),
       builder: (BuildContext context, AsyncSnapshot<Map<String,dynamic>> quoteSnap){
-        _quote = quoteSnap;
-        if(_screenType != 'incomming'){
-          return _createQuoteInfoList();
+        if(quoteSnap.data != null){
+          _quote = quoteSnap.data;
+          if(_screenType != 'incomming'){
+            return _createQuoteInfoList();
+          }
+          else{
+            return _sparePadding(8.0);
+          }
         }
         else{
           return _sparePadding(8.0);
@@ -115,13 +125,15 @@ class RequestInfoScreen extends StatelessWidget {
   }
 
   Widget _createQuoteInfoList(){
-    return Container(
-      child: ListView(
-        children: <Widget>[
-          _createQuoteTile(),
-          _createQuoteDescriptionTile(),
-          _createSchedualTile(),
-        ],
+    return Expanded(
+          child: Container(
+        child: ListView(
+          children: <Widget>[
+            _createQuoteTile(),
+            _createQuoteDescriptionTile(),
+            _createSchedualTile(),
+          ],
+        ),
       ),
     );
   }
@@ -129,7 +141,7 @@ class RequestInfoScreen extends StatelessWidget {
   Widget _createQuoteTile(){
     return ListTile(
       title: Text('Quote Amount'),
-      subtitle: Text('\$${_quote['quote-amount']}'),
+      subtitle: Text('\$${_quote['quote_amount']}'),
     );
   }
 
@@ -147,7 +159,7 @@ class RequestInfoScreen extends StatelessWidget {
     );
   }
 
-  dynamic _createButton() async{
+  Widget _createButton() {
     if(_screenType != 'incomming'){
       return _createViewMsgButton();
     }
@@ -156,11 +168,12 @@ class RequestInfoScreen extends StatelessWidget {
     }
   }
 
-  FutureBuilder _createViewMsgButton(){
+  Widget _createViewMsgButton(){
     return FutureBuilder(
-      future: RequestInfoBackend().checkMsgAvailabe(),
+      initialData: false,
+      future: RequestInfoBackend().checkMsgAvailable(_request['request_id']),
       builder: (BuildContext context, AsyncSnapshot<bool> isMsgAvailable){
-        if(isMsgAvailabe){
+        if(isMsgAvailable.data){
           return _createEnabledViewMsgBtn();
         }
         else{
@@ -212,7 +225,7 @@ class RequestInfoScreen extends StatelessWidget {
   MaterialPageRoute _getQuoteFormRoute(){
     return MaterialPageRoute(
       builder: (BuildContext context){
-        //return QuoteFormScreen();
+        return QuoteFormScreen(_request['request_id']);
       }
     );
   }

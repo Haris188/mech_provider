@@ -27,9 +27,19 @@ class _RequestListingScreenState extends State<RequestListingScreen> {
     return FutureBuilder(
       future: _getRequestsFromDb(),
       builder: (BuildContext context, AsyncSnapshot<List<Map<String,dynamic>>> requests){
-        if(requests.data[0]['result'] == false){
+        print(requests.data);
+        if(requests.data.length < 1){
+          return _getNoRequestWidget();
+        }
+        
+        else if(requests.data[0]['result'] == false){
           return _getLoadingWidget();
         }
+
+        else if(requests.data[0]['result'] == 'timeout'){
+          return _getErrorText();
+        }
+        
         else{
           widget._requests = requests.data;
           return _createRequestList();
@@ -43,6 +53,34 @@ class _RequestListingScreenState extends State<RequestListingScreen> {
     return Container(
       child: Center(
         child: Text("Loading..."),
+      ),
+    );
+  }
+
+  Widget _getErrorText(){
+    return Container(
+      child: Center(
+        child: Text("Can\'t load the Requests. Try checking your Internet"),
+      ),
+    );
+  }
+
+  Widget _getNoRequestWidget(){
+    if(widget._screenType == 'incomming'){
+      return _getNoRequestText('incomming');
+    }
+    else if(widget._screenType == 'quoted'){
+      return _getNoRequestText('Qutoed');
+    }
+    else if(widget._screenType == 'accepted'){
+      return _getNoRequestText('Accepted');
+    }
+  }
+
+  Widget _getNoRequestText(String screen){
+    return Container(
+      child: Center(
+        child: Text("No $screen Requests"),
       ),
     );
   }
