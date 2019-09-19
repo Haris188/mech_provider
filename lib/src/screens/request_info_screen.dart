@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../backend/request_info_backend.dart';
 import 'vehicle_detail_screen.dart';
 import 'quote_form_screen.dart';
+import 'chat_screen.dart';
 
 class RequestInfoScreen extends StatelessWidget {
   final Map<String, dynamic> _request;
@@ -199,7 +200,7 @@ class RequestInfoScreen extends StatelessWidget {
   MaterialPageRoute _getChatRoute(){
     return MaterialPageRoute(
       builder: (BuildContext context){
-        //return ChatScreen();
+        return ChatScreen(_quote['mech_id'],_request['request_id'], _screenType);
       }
     );
   }
